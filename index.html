@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار السلوك التنظيمي وعلم النفس الصناعي والقيادة - أقسام منفصلة عشوائية</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-glow: linear-gradient(45deg, #ff7675, #fdcb6e, #00cec9, #6c5ce7);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            padding-top: 110px;
+        }
+
+        /* شريط النتيجة الثابت في الأعلى بتصميم زجاجي */
+        .score-board {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .counters-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-item.correct-count { color: #34d399; }
+        .score-item.wrong-count { color: #f87171; }
+
+        /* ستايل اسم Moza المتوهج */
+        .user-tag {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 22px;
+            border-radius: 30px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: tagShine 3.5s infinite linear;
+        }
+
+        @keyframes tagShine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .user-tag-name {
+            background: var(--accent-glow);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: tagGradientText 3s infinite linear;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            letter-spacing: 1px;
+        }
+
+        @keyframes tagGradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .fire-icon {
+            animation: pulseFire 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseFire {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #ff7675); }
+            50% { transform: scale(1.2); filter: drop-shadow(0 0 8px #ff7675); }
+        }
+
+        /* ستايل نافذة الترحيب المنبثقة */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        .welcome-popup {
+            background: #1e1b4b;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(99, 102, 241, 0.2);
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .welcome-popup h2 {
+            font-size: 2.8rem;
+            background: var(--accent-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 10px 0;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        .welcome-popup p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #6366f1, #a855f7);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.7);
+        }
+
+        .welcome-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 35px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+        }
+
+        header p {
+            color: #a855f7;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* ستايل العناوين الفرعية للأقسام */
+        .section-heading {
+            font-size: 1.6rem;
+            color: #fdcb6e;
+            border-bottom: 2px solid rgba(253, 203, 110, 0.3);
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .question-type-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            color: #cbd5e1;
+            cursor: pointer;
+            text-align: right;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background-color: rgba(99, 102, 241, 0.15);
+            border-color: #6366f1;
+            color: #ffffff;
+            transform: translateX(-3px);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* صندوق التعليل والتصحيح */
+        .correction-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(30, 41, 59, 0.9);
+            border-right: 4px solid #6366f1;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #e2e8f0;
+            display: none;
+            line-height: 1.6;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .correction-box.show-info {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tf-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .tf-container .option-btn {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .disabled {
+            pointer-events: none;
+            opacity: 0.75;
+        }
+
+        .footer-admin-card {
+            margin-top: 70px;
+            margin-bottom: 40px;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-admin-text {
+            color: #e2e8f0;
+            font-size: 1.15rem;
+            margin: 0;
+            font-weight: 500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-admin-name {
+            background: var(--accent-glow);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            animation: gradientText 3s infinite linear;
+            display: inline-block;
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .crown-icon {
+            font-size: 1.5rem;
+            animation: floatIcon 2s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px) scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-popup">
+        <h2>Welcome!</h2>
+        <p>جاهز للاختبار المنفصل والملغبط يا <strong>MOZA🔥</strong>؟</p>
+        <button class="start-btn" onclick="closeWelcome()">ابدأ الاختبار الآن</button>
+    </div>
+</div>
+
+<div class="score-board">
+    <div class="counters-container">
+        <div class="score-item correct-count">الإجابات الصحيحة: <span id="correct-score">0</span></div>
+        <div class="score-item wrong-count">عدد الأخطاء (كام غلطة): <span id="wrong-score">0</span></div>
+    </div>
+    
+    <div class="user-tag">
+        <span class="user-tag-name">Moza</span>
+        <span class="fire-icon">🔥</span>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>بنك الأسئلة الشامل (نسخة الأقسام المنفصلة العشوائية)</h1>
+        <p>السلوك التنظيمي، علم النفس الصناعي، والقيادة</p>
+    </header>
+
+    <div class="section-heading">القسم الأول: أسئلة الصواب والخطأ (مرتبة عشوائياً)</div>
+    <div id="tf-container"></div>
+
+    <div class="section-heading">القسم الثاني: أسئلة الاختيار من متعدد (مرتبة عشوائياً)</div>
+    <div id="mc-container"></div>
+
+    <div class="footer-admin-card">
+        <p class="footer-admin-text">
+            <span class="crown-icon">👑</span>
+            تحت إشراف أدمن الجروب:
+            <span class="footer-admin-name">Moza</span>
+        </p>
+    </div>
+</div>
+
+<script>
+    function closeWelcome() {
+        document.getElementById('welcomeOverlay').classList.add('hidden');
+    }
+
+    let totalCorrect = 0;
+    let totalWrong = 0;
+
+    function updateScoreBoard() {
+        document.getElementById('correct-score').innerText = totalCorrect;
+        document.getElementById('wrong-score').innerText = totalWrong;
+    }
+
+    // بنك أسئلة الصواب والخطأ
+    const tfQuestions = [
+        { id: 'tf-1', type: 'tf', text: "ليس هناك ضرورة كبيرة لتحليل ودراسة السلوك الإنساني.", ans: 0, correction: "لأن السلوك الإنساني سلوك معقد؛ لأن جزءاً منه يكون ظاهراً وقابلاً للملاحظة وجزءاً آخر يكون غير ظاهر ولا يمكن قياسه بشكل واضح ومباشر، ولذلك فمن الضروري تحليل ودراسة السلوك التنظيمي." },
+        { id: 'tf-2', type: 'tf', text: "السلوك الإنساني يقصد به كافة التصرفات والأفعال التي تصدر من الفرد.", ans: 1 },
+        { id: 'tf-3', type: 'tf', text: "دراسة المدير لسلوك المرؤوسين لا تساعده في فهم السلوك الشاذ الذي يسود بعض العاملين.", ans: 0, correction: "دراسة المدير لسلوك مرؤوسيه تقربه من فهم دوافعهم، وتمكنه من أن يستخدم مهارة أساليب التحفيز المناسبة لهم، ورفع روحهم المعنوية، والتعرف على السلوك الشاذ الذي يسود بعض العاملين مثل كثرة الغياب والعدوان والتمرد على العمل، والتعرف على دوافع السلوك الشاذ وتقديم سبل العلاج بدلاً من العقاب." },
+        { id: 'tf-4', type: 'tf', text: "تهدف دراسة السلوك التنظيمي إلى فهم الأبعاد النفسية والسلوكية والاجتماعية للإنسان بصفة عامة في المنظمة.", ans: 1 },
+        { id: 'tf-5', type: 'tf', text: "السلوك التنظيمي يعد دعامة أساسية لنجاح أي منظمة.", ans: 1 },
+        { id: 'tf-6', type: 'tf', text: "علم النفس الصناعي هو أحد فروع علم النفس إذ يغلب عليه الجانب التطبيقي.", ans: 1 },
+        { id: 'tf-7', type: 'tf', text: "علم النفس الصناعي لا يفيد في الوقوف على مشكلات العاملين ورفع الروح المعنوية.", ans: 0, correction: "يهدف علم النفس الصناعي إلى رفع الكفاية الإنتاجية للعاملين وذلك عن طريق حل المشكلات التي تحدث في المجال الصناعي حلاً علمياً إنسانياً، كما يحرص على كرامة واحترام العاملين بما يحقق لهم الراحة النفسية والصحية التي تساهم في زيادة الإنتاج كماً ونوعاً." },
+        { id: 'tf-8', type: 'tf', text: "من أهداف علم النفس الصناعي زيادة توافق العامل مع عمله.", ans: 1 },
+        { id: 'tf-9', type: 'tf', text: "الهندسة البشرية ليست فرعاً حديثاً من فروع علم النفس الصناعي.", ans: 0, correction: "تعتبر الهندسة البشرية فرعاً حديثاً من فروع علم النفس الصناعي، ويقصد به تصميم أو تعديل الآلة بما يتناسب والاستعدادات النفسية لمن يعمل عليها من البشر." },
+        { id: 'tf-10', type: 'tf', text: "علم النفس الصناعي لا يُعنى في المقام الأول بتوجيه الفرد للعمل الذي يتواءم مع قدراته وينسجم مع بنائه النفسي.", ans: 0, correction: "من أهمية علم النفس الصناعي أنه يُعنى في المقام الأول بتوجيه الإنسان للعمل الذي يتواءم مع قدراته وينسجم مع بنائه النفسي." },
+        { id: 'tf-11', type: 'tf', text: "البيئة ليس لها دور في تكوين الشخصية.", ans: 0, correction: "البيئة لها دور مهم في التعلم وتكوين الشخصية." },
+        { id: 'tf-12', type: 'tf', text: "نظرية السمات تهتم بالفروق الفردية بين الأفراد.", ans: 1 },
+        { id: 'tf-13', type: 'tf', text: "السمات الثانوية تظهر في كل المواقف.", ans: 0, correction: "تظهر في مواقف معينة." },
+        { id: 'tf-14', type: 'tf', text: "مفهوم الذات يؤثر على دافعية الفرد للعمل.", ans: 1 },
+        { id: 'tf-15', type: 'tf', text: "الشخصية بالكامل تتغير من يوم لآخر.", ans: 0, correction: "الشخصية ثابتة نسبياً وليست متغيرة بالكامل." },
+        { id: 'tf-16', type: 'tf', text: "الدوافع هي قوة خارجية فقط تؤثر على سلوك الفرد.", ans: 0, correction: "القوة قد تكون داخلية أو خارجية." },
+        { id: 'tf-17', type: 'tf', text: "حسب نظرية ماسلو لا يمكن الانتقال لمستوى أعلى قبل إشباع المستوى الأدنى.", ans: 1 },
+        { id: 'tf-18', type: 'tf', text: "زيادة المرتب دائماً تؤدي إلى تحفيز قوي طويل الأمد.", ans: 0, correction: "طبقاً لنظرية هرزبرج المرتب عامل صحي (وقائي) يمنع الاستياء ولكنه لا يخلق دافعية قوية طويلة الأمد." },
+        { id: 'tf-19', type: 'tf', text: "دافع الإنجاز من أهم دوافع نظرية ميكليلاند.", ans: 1 },
+        { id: 'tf-20', type: 'tf', text: "الحب والانتماء تعتبر من حاجات التقدير.", ans: 0, correction: "هي من الحاجات الاجتماعية." },
+        { id: 'tf-21', type: 'tf', text: "القيم تساعد في توجيه سلوك الأفراد داخل المجتمع.", ans: 1 },
+        { id: 'tf-22', type: 'tf', text: "القيم لا تؤثر في اتخاذ القرارات.", ans: 0, correction: "القيم تؤثر في عملية اتخاذ القرارات للمديرين." },
+        { id: 'tf-23', type: 'tf', text: "ضعف التربية الأسرية قد يؤدي إلى تدهور القيم في المجتمع.", ans: 1 },
+        { id: 'tf-24', type: 'tf', text: "القيم تساعد في زيادة الاستقرار في المجتمع.", ans: 1 },
+        { id: 'tf-25', type: 'tf', text: "القيم الاقتصادية تهتم بالجمال والتنظيم.", ans: 0, correction: "تهتم بالربح والمنفعة المادية." },
+        { id: 'tf-26', type: 'tf', text: "الاتجاهات السلبية يمكن تغييرها من خلال التدريب والتطوير.", ans: 1 },
+        { id: 'tf-27', type: 'tf', text: "الاتجاهات السلبية لا تؤثر على العمل الجماعي في المنظمة.", ans: 0, correction: "الاتجاهات السلبية قد تؤدي إلى صراعات بين الأفراد وتقلل من العمل الجماعي وبالتالي تؤثر بالسلب على الإنتاجية والأداء العام." },
+        { id: 'tf-28', type: 'tf', text: "الاتجاهات الإيجابية تجاه العمل تعزز من الإنتاجية والرضا الوظيفي.", ans: 1 },
+        { id: 'tf-29', type: 'tf', text: "كل الأفراد في المنظمة يتشاركون نفس القيم والاتجاهات.", ans: 0, correction: "في أي منظمة يوجد تنوع كبير في القيم والاتجاهات بين الأفراد بناءً على خلفياتهم الثقافية والتجارب الشخصية." },
+        { id: 'tf-30', type: 'tf', text: "اتجاهات الأفراد يمكن أن تتأثر بالبيئة الخارجية فقط وليس بالبيئة الداخلية بالمنظمة.", ans: 0, correction: "الاتجاهات تتأثر بكل من البيئة الداخلية مثل (ثقافة المنظمة – أسلوب الإدارة – العلاقات الشخصية) والبيئة الخارجية مثل التغيرات (الاقتصادية – السياسية – الاجتماعية)." },
+        { id: 'tf-31', type: 'tf', text: "المعلومات الجيدة تساعد في اتخاذ قرارات أفضل.", ans: 1 },
+        { id: 'tf-32', type: 'tf', text: "لا تؤثر الحالة النفسية على القرار.", ans: 0, correction: "الحالة النفسية لها دور مهم في عملية اتخاذ القرارات." },
+        { id: 'tf-33', type: 'tf', text: "الخبرة ليس لها علاقة باتخاذ القرار.", ans: 0, correction: "تلعب الخبرة دوراً كبيراً في عملية اتخاذ القرارات." },
+        { id: 'tf-34', type: 'tf', text: "من سلبيات المشاركة زيادة الصراعات بين الأفراد.", ans: 1 },
+        { id: 'tf-35', type: 'tf', text: "المشاركة تقلل من قبول العاملين للقرار.", ans: 0, correction: "المشاركة تزيد من قبول العاملين للقرار." },
+        { id: 'tf-36', type: 'tf', text: "القرارات الاستراتيجية تتخذها الإدارة العليا.", ans: 1 },
+        { id: 'tf-37', type: 'tf', text: "تعدد الآراء يساعد على تحسين القرارات.", ans: 1 },
+        { id: 'tf-38', type: 'tf', text: "العوامل البيئية لا تؤثر على المنظمة.", ans: 0, correction: "تلعب العوامل البيئية مثل (الظروف الاقتصادية - المنافسة - التكنولوجيا - القوانين الحكومية) دوراً مهماً في حياة المنظمة." },
+        { id: 'tf-39', type: 'tf', text: "القرارات الفردية دائماً أفضل من الجماعية.", ans: 0, correction: "ليست دائماً أفضل، وقد تكون الجماعية أدق وأكثر حكمة." },
+        { id: 'tf-40', type: 'tf', text: "المشاركة تؤدي إلى سرعة اتخاذ القرار دائماً.", ans: 0, correction: "تؤدي غالباً إلى بطء اتخاذ القرار نتيجة النقاشات والمشاورات." },
+        { id: 'tf-41', type: 'tf', text: "القيادة تعني إصدار الأوامر فقط.", ans: 0, correction: "القيادة هي التأثير في الآخرين وتحفيزهم لتحقيق الأهداف." },
+        { id: 'tf-42', type: 'tf', text: "لا يمكن تحقيق أهداف المنظمة بدون قيادة فعالة.", ans: 1 },
+        { id: 'tf-43', type: 'tf', text: "المرؤوسون ليس لهم دور في عملية القيادة.", ans: 0, correction: "المرؤوسون عنصر أساسي في عملية القيادة (لا توجد قيادة بدون تابعين)." },
+        { id: 'tf-44', type: 'tf', text: "القيادة تساعد على حل المشكلات داخل العمل.", ans: 1 },
+        { id: 'tf-45', type: 'tf', text: "اتخاذ القرار ليس من مهام القائد.", ans: 0, correction: "اتخاذ القرار من أهم مهام القائد الأساسية." },
+        { id: 'tf-46', type: 'tf', text: "القيادة تساهم في بناء روح الفريق.", ans: 1 },
+        { id: 'tf-47', type: 'tf', text: "نظرية الأنماط لا علاقة لها بالنظرية السلوكية.", ans: 0, correction: "نظرية الأنماط جزء من النظرية السلوكية لأنها تفسر القيادة من خلال سلوك القائد ونمطه." },
+        { id: 'tf-48', type: 'tf', text: "السلوك القيادي لا يؤثر في أداء العاملين.", ans: 0, correction: "سلوك القائد له تأثير مباشر وقوي على سلوك العاملين وأدائهم ورضاهم." },
+        { id: 'tf-49', type: 'tf', text: "النظرية الموقفية لا تهتم بالموقف.", ans: 0, correction: "تقوم النظرية الموقفية أساساً على دراسة الموقف والظروف المحيطة قبل اختيار أسلوب القيادة المناسب." },
+        { id: 'tf-50', type: 'tf', text: "القيادة هي القدرة على إصدار الأوامر فقط.", ans: 0, correction: "القيادة هي القدرة على التأثير في الآخرين وتوجيههم اختيارياً لتحقيق الأهداف." },
+        { id: 'tf-51', type: 'tf', text: "القيادة والإدارة لهما نفس المعنى تماماً.", ans: 0, correction: "القيادة تختلف عن الإدارة؛ فالقيادة تركز على التأثير والإلهام، أما الإدارة فتركز على التخطيط، التنظيم، والرقابة." },
+        { id: 'tf-52', type: 'tf', text: "القيادة تهدف إلى تحقيق أهداف مشتركة.", ans: 1 },
+        { id: 'tf-53', type: 'tf', text: "النمط الديمقراطي يعتمد على مشاركة العاملين.", ans: 1 },
+        { id: 'tf-54', type: 'tf', text: "الاتصالات الإدارية تقتصر فقط على نقل الأوامر.", ans: 0, correction: "تشمل نقل المعلومات، الأفكار، التوجيهات، والتقارير والتفاعل المتبادل." },
+        { id: 'tf-55', type: 'tf', text: "من أهداف الاتصال الإداري تحقيق التنسيق بين العاملين.", ans: 1 },
+        { id: 'tf-56', type: 'tf', text: "الاتصال الصاعد يكون من الإدارة للعاملين.", ans: 0, correction: "الاتصال الصاعد يكون من المرؤوسين (الموظفين) إلى الإدارة العليا." },
+        { id: 'tf-57', type: 'tf', text: "الاتصال الفعال يساعد في اتخاذ قرارات صحيحة.", ans: 1 },
+        { id: 'tf-58', type: 'tf', text: "الاتصال الأفقي يساعد على التعاون بين الزملاء.", ans: 1 },
+        { id: 'tf-59', type: 'tf', text: "التحفيز هو وسيلة لزيادة إنتاجية العاملين.", ans: 1 },
+        { id: 'tf-60', type: 'tf', text: "الحوافز المعنوية تشمل المرتب والعلاوات فقط.", ans: 0, correction: "المرتب والعلاوات حوافز مادية، أما الحوافز المعنوية فتشمل التقدير، الاحترام، شهادات الشكر والترقية." },
+        { id: 'tf-61', type: 'tf', text: "التحفيز يساعد في زيادة الرضا الوظيفي.", ans: 1 },
+        { id: 'tf-62', type: 'tf', text: "الهدف من التحفيز هو تقليل أداء العاملين.", ans: 0, correction: "الهدف هو تحسين الأداء وزيادته وتوجيهه إيجابياً." },
+        { id: 'tf-63', type: 'tf', text: "الدوافع ليس لها علاقة بسلوك العامل داخل المنظمة.", ans: 0, correction: "الدوافع هي القوة الداخلية الأساسية التي تحرك وتوجه سلوك العامل." }
+    ];
+
+    // بنك أسئلة الاختيار من متعدد
+    const mcQuestions = [
+        { id: 'mc-1', type: 'mc', text: "تنسب نظرية العلاقات الإنسانية إلى:", options: ["أ- إلتون مايو", "ب- أبراهام ماسلو", "جـ- فريدريك تايلور", "د- مكليلياند"], ans: 0 },
+        { id: 'mc-2', type: 'mc', text: "تهتم المنظمات بدراسة سلوكيات العاملين فيها لعدد من الاعتبارات منها:", options: ["أ- وجود علاقة بين اتجاهات الفرد وسلوكه", "ب- وجود علاقة بين سلوك الفرد وأسرته", "جـ- وجود علاقة بين المجتمع والإنتاجية", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-3', type: 'mc', text: "يتطلب دراسة السلوك التنظيمي البحث العلمي في مجالات عدة أهمها:", options: ["أ- علم اتخاذ القرارات", "ب- علم التاريخ", "جـ- علم النفس", "د- علم الطب"], ans: 2 },
+        { id: 'mc-4', type: 'mc', text: "من دواعي الاهتمام بدراسة السلوك التنظيمي:", options: ["أ- تعدد رغبات المتعاملين مع المنظمة وااحتياجاتهم", "ب- تعدد الوظائف الإدارية للمنظمة", "جـ- تعدد أنواع قرارات المنظمة", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-5', type: 'mc', text: "علم النفس هو العلم الذي:", options: ["أ- يدرس المجتمعات خصوصاً البدائية منها لمعرفة الإنسان ونشاطاته", "ب- يدرس الناس في علاقاتهم بالأشخاص الآخرين", "جـ- يفسر كيف ولماذا يتصرف الأفراد في نشاطات المجموعات", "د- يسعى لدراسة وقياس وتفسير وأحياناً تغيير سلوك الفرد"], ans: 3 },
+        { id: 'mc-6', type: 'mc', text: "من أهم مجالات علم النفس الصناعي:", options: ["أ- الاختيار والتوجيه المهني", "ب- التدريب المهني", "جـ- الهندسة البشرية", "د- كل ما سبق"], ans: 3 },
+        { id: 'mc-7', type: 'mc', text: "من أهداف علم النفس الصناعي:", options: ["أ- زيادة توافق العامل في عمله", "ب- التدريب المهني", "جـ- زيادة عملية الاتصال", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-8', type: 'mc', text: "من الاعتبارات التي بُنيت عليها أهمية السلوك التنظيمي:", options: ["أ- العلاقة بين بيئة العمل الداخلية وإنتاجية العمل", "ب- العلاقة بين بيئة العمل الخارجية وإنتاجية العمل", "جـ- العلاقة بين المنافسين وإنتاجية الموظف", "د- العلاقة بين العملاء وإنتاجية الموظف"], ans: 0 },
+        { id: 'mc-9', type: 'mc', text: "عندما ندرك السلوك الإنساني فإننا نقول أن الإنسان:", options: ["أ- كائن فطري", "ب- كائن قلق ومتوتر", "جـ- كائن معقد", "د- ليس شيء مما سبق"], ans: 2 },
+        { id: 'mc-10', type: 'mc', text: "يحرص علم النفس الصناعي على:", options: ["أ- كرامة واحترام العاملين", "ب- الراحة النفسية والصحية", "جـ- زيادة الإنتاجية", "د- كل ما سبق"], ans: 3 },
+        { id: 'mc-11', type: 'mc', text: "السمة التي تسيطر على معظم سلوك الفرد تسمى:", options: ["أ- سمة ثانوية", "ب- سمة رئيسية", "ج- سمة مركزية", "د- كل ما سبق"], ans: 1 },
+        { id: 'mc-12', type: 'mc', text: "تعتمد نظرية الأنماط الفسيولوجية (أو النفسية) للشخصية على بعدين أساسيين منها:", options: ["أ- نمط الشخصية الانطوائية", "ب- نمط الشخصية الاستنباطية", "جـ- (أ) و (ب)", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-13', type: 'mc', text: "صاحب نظرية السمات الشهير هو:", options: ["أ- ألبورت", "ب- فرويد", "جـ- ماسلو", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-14', type: 'mc', text: "نظرية الذات ترتبط بعالم النفس:", options: ["أ- فرويد", "ب- ماسلو", "جـ- كارل روجرز", "د- واتسون"], ans: 2 },
+        { id: 'mc-15', type: 'mc', text: "تقدير الذات المرتفع يؤدي إلى:", options: ["أ- زيادة الثقة بالنفس", "ب- ضعف الأداء", "ج- تجنب المسؤولية", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-16', type: 'mc', text: "أي مما يلي يعد من العوامل المحفزة (الدافعية) عند هرزبرج:", options: ["أ- المرتب", "ب- ظروف العمل", "جـ- التقدير", "د- سياسة المنظمة"], ans: 2 },
+        { id: 'mc-17', type: 'mc', text: "الحاجة إلى الاحترام والتقدير في هرم ماسلو تأتي في المرتبة:", options: ["أ- الأولى", "ب- الثانية", "ج- الثالثة", "د- الرابعة"], ans: 3 },
+        { id: 'mc-18', type: 'mc', text: "الشخص الذي يسعى للتأثير والسيطرة يمتلك دافع:", options: ["أ- الإنجاز", "ب- القوة", "ج- الانتماء", "د- الأمان"], ans: 1 },
+        { id: 'mc-19', type: 'mc', text: "أي من العوامل التالية إذا غاب يسبب عدم رضا الموظف ولكن وجوده لا يزيد الرضا (عوامل صحية):", options: ["أ- الإنجاز", "ب- المكافآت المالية / الرواتب", "ج- الإبداع", "د- المسؤولية"], ans: 1 },
+        { id: 'mc-20', type: 'mc', text: "إذا شعر الموظف أن جهده لن يؤدي إلى مكافأة فإن دافعيته ستكون:", options: ["أ- عالية", "ب- منخفضة", "ج- متوسطة", "د- ليس شيء مما سبق"], ans: 1 },
+        { id: 'mc-21', type: 'mc', text: "القيم هي:", options: ["أ- مهارات يكتسبها الفرد من العمل", "ب- معتقدات ومبادئ توجه سلوك الفرد", "ج- قوانين تفرضها المنظمة", "د- ليس شيء مما سبق"], ans: 1 },
+        { id: 'mc-22', type: 'mc', text: "من أسباب تردي القيم في المجتمع:", options: ["أ- التربية السليمة", "ب- قوة الوازع الديني", "ج- ضعف دور الأسرة", "د- انتشار القدوة الحسنة"], ans: 2 },
+        { id: 'mc-23', type: 'mc', text: "من العوامل التي تساعد على انخفاض القيم في المجتمع:", options: ["أ- التعليم الجيد", "ب- التعاون بين الأفراد", "ج- احترام القوانين", "د- رفقاء السوء"], ans: 3 },
+        { id: 'mc-24', type: 'mc', text: "من نتائج الالتزام بالقيم في المجتمع:", options: ["أ- انتشار الفوضى", "ب- زيادة التماسك الاجتماعي", "ج- ضعف العلاقات الإنسانية", "د- زيادة المشكلات"], ans: 1 },
+        { id: 'mc-25', type: 'mc', text: "القيم التي تهتم بالعلاقات الإنسانية والآخرين هي:", options: ["أ- القيم الاجتماعية", "ب- القيم الاقتصادية", "ج- القيم النظرية", "د- القيم الجمالية"], ans: 0 },
+        { id: 'mc-26', type: 'mc', text: "تتكون الاتجاهات عند الفرد من مكونات رئيسية منها:", options: ["أ- مكون فلسفي", "ب- مكون صحي", "ج- مكون جسماني", "د- مكون معرفي"], ans: 3 },
+        { id: 'mc-27', type: 'mc', text: "من أهم العناصر المؤثرة في تغيير الاتجاهات:", options: ["أ- الإقناع", "ب- القدرات العقلية", "ج- المكون الفكري", "د- ليس شيء مما سبق"], ans: 0 },
+        { id: 'mc-28', type: 'mc', text: "قد تكون الاتجاهات:", options: ["أ- سلبية", "ب- إيجابية", "ج- إيجابية وسلبية", "د- ليس شيء مما سبق"], ans: 2 },
+        { id: 'mc-29', type: 'mc', text: "من أهم خصائص الاتجاهات:", options: ["أ – الاتجاهات تعمل على تحقيق التوازن عند الفرد", "ب- الاتجاهات تتعلق بشخصية الفرد", "ج- الاتجاهات مكتسبة وقابلة للتعديل وليست وراثية", "د- كل ما سبق"], ans: 2 },
+        { id: 'mc-30', type: 'mc', text: "تتسم الاتجاهات بالثبات:", options: ["أ- المطلق", "ب- النسبي", "ج- الدائم", "د- ليس شيء مما سبق"], ans: 1 },
+        { id: 'mc-31', type: 'mc', text: "من خصائص اتخاذ القرار العقلانية وتعني:", options: ["أ- الاعتماد على المشاعر", "ب- اختيار الحل العشوائي", "ج- التفكير المنطقي واختيار الأفضل", "د- تجاهل المعلومات"], ans: 2 },
+        { id: 'mc-32', type: 'mc', text: "عندما يتخذ المدير قراراً في ظل نقص المعلومات وعدم معرفة النتائج بدقة فهذه الحالة تسمى:", options: ["أ- يقين", "ب- مخاطرة", "ج- عدم تأكد", "د- تخطيط"], ans: 2 },
+        { id: 'mc-33', type: 'mc', text: "المقصود بالمرونة في اتخاذ القرار:", options: ["أ- الثبات على القرار دائماً", "ب- تغيير القرار عند الحاجة ووفق المستجدات", "ج- رفض الآراء", "د- التسرع"], ans: 1 },
+        { id: 'mc-34', type: 'mc', text: "اتخاذ القرار الجماعي يتميز بـ:", options: ["أ- البطء فقط", "ب- دقة أعلى بسبب تعدد الآراء", "ج- عدم وجود أفكار", "د- العشوائية"], ans: 1 },
+        { id: 'mc-35', type: 'mc', text: "القرارات التي تتكرر بشكل مستمر ولها إجراءات وقواعد محددة تسمى:", options: ["أ- غير مبرمجة", "ب- استراتيجية", "ج- مبرمجة", "د- عشوائية"], ans: 2 },
+        { id: 'mc-36', type: 'mc', text: "القرار الذي يتخذه المدير عند مواجهة مشكلة جديدة وغير مألوفة هو:", options: ["أ- مبرمج", "ب- غير مبرمج", "ج- تشغيلي", "د- روتيني"], ans: 1 },
+        { id: 'mc-37', type: 'mc', text: "من المعوقات التي تواجه صانع القرار:", options: ["أ- توفر المعلومات", "ب- نقص المعلومات", "ج- وضوح المشكلة", "د- الخبرة"], ans: 1 },
+        { id: 'mc-38', type: 'mc', text: "من مزايا المشاركة في اتخاذ القرار:", options: ["أ- تعدد وجهات النظر", "ب- تقليل المعلومات", "ج- زيادة الأخطاء", "د- العشوائية"], ans: 0 },
+        { id: 'mc-39', type: 'mc', text: "القرارات التي يشترك فيها أكثر من شخص تسمى قرارات:", options: ["أ- فردية", "ب- جماعية", "ج- استراتيجية", "د- مبرمجة"], ans: 1 },
+        { id: 'mc-40', type: 'mc', text: "تعد المنافسة في السوق من العوامل:", options: ["أ- الداخلية", "ب- الشخصية", "ج- النفسية", "د- البيئية (الخارجية)"], ans: 3 },
+        { id: 'mc-41', type: 'mc', text: "المشاركة في اتخاذ القرار تؤدي إلى:", options: ["أ- ضعف الالتزام", "ب- زيادة قبول القرار", "ج- تقليل التعاون", "د- زيادة الصراعات"], ans: 1 },
+        { id: 'mc-42', type: 'mc', text: "القيادة تُعرف بأنها:", options: ["أ- التأثير في الآخرين لتحقيق أهداف", "ب- إصدار الأوامر فقط", "ج- تنفيذ العمل دون توجيه", "د- مراقبة الأداء فقط"], ans: 0 },
+        { id: 'mc-43', type: 'mc', text: "أي من الآتي يعد من عناصر القيادة الأساسية:", options: ["أ- التكنولوجيا", "ب- الأرباح", "ج- القائد", "د- التسويق"], ans: 2 },
+        { id: 'mc-44', type: 'mc', text: "أي مما يلي يعبر عن أهمية القيادة:", options: ["أ- زيادة المشكلات", "ب- تحفيز العاملين", "ج- تعطيل العمل", "د- تقليل الإنتاج"], ans: 1 },
+        { id: 'mc-45', type: 'mc', text: "التأثير في القيادة يعني:", options: ["أ- إجبار الآخرين", "ب- القدرة على إقناع وتحفيز الآخرين", "ج- تجاهل الآخرين", "د- فرض عقوبات"], ans: 1 },
+        { id: 'mc-46', type: 'mc', text: "البيئة في القيادة تعني:", options: ["أ- مكان العمل فقط", "ب- عدد الموظفين", "ج- الظروف المحيطة بالعمل", "د- أدوات الإنتاج"], ans: 2 },
+        { id: 'mc-47', type: 'mc', text: "من مهام القائد الرئيسة:", options: ["أ- اتخاذ القرارات", "ب- إهمال المشكلات", "ج- العمل بمفرده", "د- تجنب المسؤولية"], ans: 0 },
+        { id: 'mc-48', type: 'mc', text: "يركز القائد الموجه للعمل في نمطه على الهياكل والمهام، وتشمل أنماط فيدلر أيضاً:", options: ["أ- قائد عشوائي", "ب- قائد موجه للعمل", "ج- قائد تنفيذي", "د- قائد إداري"], ans: 1 },
+        { id: 'mc-49', type: 'mc', text: "القائد الموجه للعلاقات يهتم بـ:", options: ["أ- الإنتاج", "ب- العقوبات", "ج- القوانين", "د- العلاقات الإنسانية"], ans: 3 },
+        { id: 'mc-50', type: 'mc', text: "نجاح القائد في النظرية الموقفية يعتمد على:", options: ["أ- المظهر فقط", "ب- الحظ", "ج- عدد الموظفين", "د- توافق أسلوبه مع الموقف"], ans: 3 },
+        { id: 'mc-51', type: 'mc', text: "تعد نظرية الأنماط القيادية جزءاً من:", options: ["أ- النظرية السلوكية", "ب- نظرية السمات", "ج- النظرية الموقفية", "د- نظرية المسار"], ans: 0 },
+        { id: 'mc-52', type: 'mc', text: "تركز النظرية السلوكية في القيادة على:", options: ["أ- صفات القائد", "ب- سلوك القائد وما يفعله", "ج- البيئة الخارجية", "د- التكنولوجيا"], ans: 1 },
+        { id: 'mc-53', type: 'mc', text: "النمط القيادي الذي يعتمد على مشاركة المرؤوسين في اتخاذ القرار هو:", options: ["أ- الأوتوقراطي", "ب- الفوضوي", "ج- الديمقراطي", "د- ليس شيء مما سبق"], ans: 2 },
+        { id: 'mc-54', type: 'mc', text: "الهدف الرئيسي من دراسة الأنماط القيادية هو:", options: ["أ- معرفة شكل المنظمة", "ب- زيادة الإنتاج", "ج- فهم سلوك القائد وتأثيره", "د- كل ما سبق"], ans: 2 },
+        { id: 'mc-55', type: 'mc', text: "تُعرف الاتصالات الإدارية بأنها:", options: ["أ- تبادل المعلومات بين الأفراد فقط", "ب- إصدار الأوامر فقط", "ج- استخدام التكنولوجيا في العمل", "د- نقل المعلومات والأفكار داخل المنظمة لتحقيق الأهداف"], ans: 3 },
+        { id: 'mc-56', type: 'mc', text: "من أهداف الاتصالات الإدارية:", options: ["أ- زيادة الصراعات", "ب- تقليل الإنتاجية", "ج- تحقيق التنسيق بين العاملين", "د- إخفاء المعلومات"], ans: 2 },
+        { id: 'mc-57', type: 'mc', text: "من أهمية الاتصالات الإدارية:", options: ["أ- تعقيد العمل", "ب- نقل الثقافات والتوجيهات والتعليمات", "ج- تقليل التعاون", "د- إبطاء العمل"], ans: 1 },
+        { id: 'mc-58', type: 'mc', text: "الاتصال من أعلى إلى أسفل (الاتصال النازل) يعني:", options: ["أ- من الإدارة إلى العاملين", "ب- خارج المنظمة", "ج- بين الزملاء", "د- من الموظفين للإدارة"], ans: 0 },
+        { id: 'mc-59', type: 'mc', text: "من عناصر عملية الاتصال الأساسية:", options: ["أ- المرسل", "ب- المستقبل", "ج- الرسالة", "د- كل ما سبق"], ans: 3 },
+        { id: 'mc-60', type: 'mc', text: "الهدف الأساسي من التحفيز هو:", options: ["أ- تقليل الإنتاج", "ب– تقليل الرواتب", "ج- زيادة سلوك العاملين الإيجابي وتحسين الأداء", "د- إنهاء العمل"], ans: 2 },
+        { id: 'mc-61', type: 'mc', text: "من أنواع التحفيز:", options: ["أ- مادية ومعنوية", "ب– داخلية فقط", "ج- خارجية فقط", "د- إدارية فقط"], ans: 0 },
+        { id: 'mc-62', type: 'mc', text: "من أمثلة الحوافز المادية:", options: ["أ- التقدير", "ب– المكافآت المالية", "ج- الاحترام", "د- التشجيع"], ans: 1 },
+        { id: 'mc-63', type: 'mc', text: "من أهداف التحفيز:", options: ["أ- رفع كفاءة الأداء", "ب– تقليل رضا العاملين", "ج- زيادة الغياب", "د- إضعاف الإنتاج"], ans: 0 },
+        { id: 'mc-64', type: 'mc', text: "التحفيز الفعال يؤدي في النهاية إلى:", options: ["أ- انخفاض الإنتاج", "ب– توقف العمل", "ج- إلغاء الأهداف", "د- زيادة الرضا الوظيفي والإنتاجية"], ans: 3 }
+    ];
+
+    // دالة الخلط العشوائي (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function renderQuiz() {
+        // 1. توليد وعرض أسئلة صح وخطأ عشوائياً
+        const tfContainer = document.getElementById('tf-container');
+        const shuffledTF = shuffleArray([...tfQuestions]);
+        let tfHtml = '';
+        
+        shuffledTF.forEach((q, index) => {
+            tfHtml += `
+                <div class="question-card" id="card-${q.id}">
+                    <div class="question-type-badge">صواب أم خطأ</div>
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    <div class="options-container tf-container">
+                        <button class="option-btn" onclick="checkTrueFalse('${q.id}', 1, this)">صح</button>
+                        <button class="option-btn" onclick="checkTrueFalse('${q.id}', 0, this)">خطأ</button>
+                    </div>
+                    ${q.correction ? `<div class="correction-box" id="correction-${q.id}"><strong>التصحيح العلمي:</strong> ${q.correction}</div>` : ''}
+                </div>
+            `;
+        });
+        tfContainer.innerHTML = tfHtml;
+
+        // 2. توليد وعرض أسئلة الاختيار من متعدد عشوائياً
+        const mcContainer = document.getElementById('mc-container');
+        const shuffledMC = shuffleArray([...mcQuestions]);
+        let mcHtml = '';
+        
+        shuffledMC.forEach((q, index) => {
+            mcHtml += `
+                <div class="question-card" id="card-${q.id}">
+                    <div class="question-type-badge">اختيار من متعدد</div>
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    <div class="options-container">
+            `;
+            
+            q.options.forEach((opt, optIndex) => {
+                mcHtml += `
+                    <button class="option-btn" onclick="checkMultipleChoice('${q.id}', ${optIndex}, this)">${opt}</button>
+                `;
+            });
+            
+            mcHtml += `
+                    </div>
+                </div>
+            `;
+        });
+        mcContainer.innerHTML = mcHtml;
+    }
+
+    function checkTrueFalse(qId, userAns, btn) {
+        const q = tfQuestions.find(item => item.id === qId);
+        const card = document.getElementById(`card-${qId}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        
+        buttons.forEach(b => b.classList.add('disabled'));
+        
+        if (userAns === q.ans) {
+            btn.classList.add('correct');
+            totalCorrect++;
+        } else {
+            btn.classList.add('wrong');
+            totalWrong++;
+            buttons.forEach(b => {
+                const isTrueBtn = b.innerText === 'صح';
+                if ((q.ans === 1 && isTrueBtn) || (q.ans === 0 && !isTrueBtn)) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        
+        const corrBox = document.getElementById(`correction-${qId}`);
+        if (corrBox) {
+            corrBox.classList.add('show-info');
+        }
+        
+        updateScoreBoard();
+    }
+
+    function checkMultipleChoice(qId, userAnsIndex, btn) {
+        const q = mcQuestions.find(item => item.id === qId);
+        const card = document.getElementById(`card-${qId}`);
+        const buttons = card.querySelectorAll('.options-container .option-btn');
+        
+        buttons.forEach(b => b.classList.add('disabled'));
+        
+        if (userAnsIndex === q.ans) {
+            btn.classList.add('correct');
+            totalCorrect++;
+        } else {
+            btn.classList.add('wrong');
+            totalWrong++;
+            buttons[q.ans].classList.add('correct');
+        }
+        updateScoreBoard();
+    }
+
+    window.onload = function() {
+        renderQuiz();
+    };
+</script>
+
+</body>
+</html>
