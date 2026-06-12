@@ -2,32 +2,321 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>اختبار حقوق الإنسان</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار حقوق انسان </title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .score-board { background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 1.2rem; border: 1px solid #334155; }
-        .question-card { background: #1e293b; padding: 20px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .question-text { font-size: 1.1rem; margin-bottom: 15px; font-weight: bold; }
-        .option-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #334155; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; text-align: right; }
-        .option-btn:hover { background: #475569; }
-        .option-btn.correct { background: #22c55e !important; }
-        .option-btn.wrong { background: #ef4444 !important; }
-        .option-btn.disabled { pointer-events: none; }
-        .correction-box { display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-right: 4px solid #3b82f6; border-radius: 4px; }
-        .correction-box.show-info { display: block; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-glow: linear-gradient(45deg, #ff7675, #fdcb6e, #00cec9, #6c5ce7);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            padding-top: 110px;
+        }
+
+        /* شريط النتيجة الثابت في الأعلى */
+        .score-board {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .counters-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-item.correct-count { color: #34d399; }
+        .score-item.wrong-count { color: #f87171; }
+
+        .user-tag {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 22px;
+            border-radius: 30px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-tag-name {
+            background: var(--accent-glow);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: tagGradientText 3s infinite linear;
+        }
+
+        @keyframes tagGradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* نافذة الترحيب المنبثقة */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        .welcome-popup {
+            background: #1e1b4b;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #6366f1, #a855f7);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .welcome-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 35px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+        }
+
+        /* عناوين الأقسام الرئيسية */
+        .section-heading {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6366f1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            color: #cbd5e1;
+            cursor: pointer;
+            text-align: right;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background-color: rgba(99, 102, 241, 0.15);
+            border-color: #6366f1;
+            color: #ffffff;
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: var(--success-color) !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: var(--error-color) !important;
+        }
+
+        .correction-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.9);
+            border-right: 4px solid #a855f7;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #e2e8f0;
+            display: none;
+            line-height: 1.6;
+        }
+        
+        .correction-box.show-info {
+            display: block;
+        }
+
+        .tf-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .tf-container .option-btn {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .disabled {
+            pointer-events: none;
+            opacity: 0.75;
+        }
+
+        .footer-admin-card {
+            margin-top: 60px;
+            text-align: center;
+            padding: 25px;
+            background: #0f172a;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-admin-name {
+            background: var(--accent-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 <body>
 
-    <div class="score-board">
-        إجابات صحيحة: <span id="correct-score">0</span> | 
-        إجابات خاطئة: <span id="wrong-score">0</span>
+<div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-popup">
+        <h2 style="font-size: 2.5rem; background: var(--accent-glow); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Welcome!</h2>
+        <p style="color: var(--text-muted); font-size: 1.2rem;">جاهز للاختبار المنظم بالأقسام يا <strong>MOZA🔥</strong>؟</p>
+        <button class="start-btn" onclick="closeWelcome()">ابدأ الآن</button>
     </div>
+</div>
 
+<div class="score-board">
+    <div class="counters-container">
+        <div class="score-item correct-count">الإجابات الصحيحة: <span id="correct-score">0</span></div>
+        <div class="score-item wrong-count">عدد الأخطاء: <span id="wrong-score">0</span></div>
+    </div>
+    <div class="user-tag">
+        <span class="user-tag-name">Moza</span>
+        <span>🔥</span>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>بنك الأسئلة الشامل المنظم</h1>
+        <p>كل قسم منفصل ومخلوط داخلياً عشوائياً</p>
+    </header>
+
+    <div class="section-heading">📝 القسم الأول: أسئلة الصواب والخطأ (متلغبطة بالداخل)</div>
     <div id="tf-section-container"></div>
+
+    <div class="section-heading">🎯 القسم الثاني: أسئلة الاختيار من متعدد (متلغبطة بالداخل)</div>
     <div id="mc-section-container"></div>
 
+    <div class="footer-admin-card">
+        <p style="color:#e2e8f0; margin:0;">👑 تحت إشراف أدمن الجروب: <span class="footer-admin-name">Moza</span></p>
+    </div>
+</div>
+
 <script>
+    function closeWelcome() {
+        document.getElementById('welcomeOverlay').classList.add('hidden');
+    }
+
     let totalCorrect = 0;
     let totalWrong = 0;
 
@@ -36,132 +325,133 @@
         document.getElementById('wrong-score').innerText = totalWrong;
     }
 
-    const trueFalseQuestions = [
-        { id: "tf-1", question: "ظهرت فكرة حماية حقوق الإنسان في صور قواعد عرفية.", answer: true },
-        { id: "tf-2", question: "بعد ظهور الدول المنظمة تطورت القواعد العرفية إلى نصوص قانونية.", answer: true },
-        { id: "tf-3", question: "لا تهتم المواطنة بعلاقة الفرد بالدولة التي يعيش عليها.", answer: false },
-        { id: "tf-4", question: "يعد القانون الدولي هو ما يمثل الواقع التطبيقي والتنفيذي لحقوق الإنسان.", answer: false },
-        { id: "tf-5", question: "يعد قانون حقوق الإنسان هو قانوناً دولياً ووطنياً.", answer: true },
-        { id: "tf-6", question: "مما يدل على أثر المرأة في الحياة العلمية في الدولة الأخشيدية، نجد أن الكثير منها دأب على طلب العلم وتعليمه.", answer: false },
-        { id: "tf-7", question: "تمتعت المرأة في العصر العباسي بجميع حقوقها تحديداً في عصر القوة والازدهار.", answer: true },
-        { id: "tf-8", question: "أخذت مشاركة المرأة في الحياة العملية في الدولة العباسية صورة واحدة.", answer: false },
-        { id: "tf-9", question: "تُعد حرفة العطارة من أكثر الحرف التي مارستها المرأة في العصر العباسي.", answer: false },
-        { id: "tf-10", question: "تعتبر التجارة من أقدم المهن والحرف التي اشتغلت بها المرأة العربية.", answer: true },
-        { id: "tf-11", question: "تعد حقوق الإنسان لصيقة بالإنسان مرتبطة به وجوداً وعدماً.", answer: true },
-        { id: "tf-12", question: "تعود جذور الحقوق السياسية إلى القرن الخامس عشر مع الثورة الفرنسية.", answer: false },
-        { id: "tf-13", question: "يطلق على الحقوق السياسية الجيل الثاني.", answer: false },
-        { id: "tf-14", question: "يطلق على الحقوق الاقتصادية والثقافية والاجتماعية الجيل الأول.", answer: false },
-        { id: "tf-15", question: "أكدت الاتفاقيات والمعاهدات الدولية على أهمية توفير الحق في توفير مستوى معيشي مناسب.", answer: true },
-        { id: "tf-16", question: "لكل شخص الحق في حرية الرأي والتعبير.", answer: true },
-        { id: "tf-17", question: "حظر الدستور المصري فرض أي رقابة على الصحف ووسائل الإعلام المصرية أو مصادرتها.", answer: true },
-        { id: "tf-18", question: "لكل إنسان الحق في حرية التفكير والدين والضمير.", answer: true },
-        { id: "tf-19", question: "أكد الدستور المصري على مبدأ المواطنة بين جميع طوائف المجتمع المصري.", answer: true },
-        { id: "tf-20", question: "يعد الأصل في الإنسان الإدانة.", answer: false },
-        { id: "tf-21", question: "تعتبر الجمعية العامة للأمم المتحدة، من الأجهزة الرئيسية في الأمم المتحدة.", answer: true },
-        { id: "tf-22", question: "يعد المجلس الاقتصادي والاجتماعي والثقافي هو أحد مجالس الأمم المتحدة.", answer: true },
-        { id: "tf-23", question: "يهدف المجلس الاقتصادي والاجتماعي والثقافي لتنسيق الأنشطة الاقتصادية والاجتماعية للأمم المتحدة والوكالات المتخصصة.", answer: true },
-        { id: "tf-24", question: "يعتبر المجلس الاقتصادي والاجتماعي هو جهاز رئيس يهدف إلى تنسيق أنشطة الأمم المتحدة في الميدانين الاقتصادي والاجتماعي.", answer: true },
-        { id: "tf-25", question: "اهتم المجلس الاقتصادي والاجتماعي بالتعاون والتنسيق مع المؤسسات والمنظمات غير الحكومية المهتمة بحقوق الإنسان.", answer: true },
-        { id: "tf-26", question: "تعود فكرة إنشاء مفوضية الأمم المتحدة السامية لشؤون اللاجئين إلى العام 1946.", answer: true },
-        { id: "tf-27", question: "يتم اختيار المفوض السامي لشؤون اللاجئين من خلال الجمعية العامة في ضوء ترشيحات الأمين العام.", answer: true },
-        { id: "tf-28", question: "تعتمد الأمم المتحدة في طريق أداء وظائفها على مجموعة من الآليات والأجهزة والمنظمات والهيئات التابعة لها.", answer: true },
-        { id: "tf-29", question: "يتكون مجلس الأمن من سبعة عشر عضواً من الأمم المتحدة.", answer: false },
-        { id: "tf-30", question: "يعتبر مجلس الأمن من الأجهزة الرئيسية في الأمم المتحدة.", answer: true },
-        { id: "tf-31", question: "حقوق الإنسان هي عبارة عن مجموعة من المعايير الأساسية التي لا يمكن للإنسان أن يعيش بكرامة دونها.", answer: true },
-        { id: "tf-32", question: "لا يجوز قيام منظمات أو وكالات إقليمية.", answer: false },
-        { id: "tf-33", question: "المنظمات الإقليمية تُعد شكلاً من أشكال التنظيم الدولي بوجه خاص.", answer: false },
-        { id: "tf-34", question: "مسألة التمويل الأجنبي للمنظمات الإقليمية أو الدولية تثير الكثير من القضايا والتساؤلات.", answer: true },
-        { id: "tf-35", question: "يلعب تاريخ المنظمة دوراً في مسألة الهيكل التنظيمي للمنظمات الإقليمية.", answer: true },
-        { id: "tf-36", question: "الانقسام بين دول الجنوب والشمال شمل أيضاً المنظمات الإقليمية.", answer: true },
-        { id: "tf-37", question: "الاتحاد الأوروبي إحدى المنظمات الإقليمية الدولية لدول الجنوب.", answer: false },
-        { id: "tf-38", question: "منظمة الدول الأمريكية إحدى المنظمات الإقليمية لدول الشمال.", answer: true },
-        { id: "tf-39", question: "أصدر الاتحاد الأوروبي ميثاقه الشهير لحقوق الإنسان في العام 1951.", answer: false },
-        { id: "tf-40", question: "قامت الدول الأوروبية باستحداث المحكمة الأوروبية لحقوق الإنسان.", answer: true },
-        { id: "tf-41", question: "يوجد ترابط بين السياسة الخارجية والسياسة الداخلية لحقوق الإنسان.", answer: true },
-        { id: "tf-42", question: "يجب أن تسعى سياسة حقوق الإنسان إلى التوفيق بين أهداف حقوق الإنسان والديمقراطية.", answer: true },
-        { id: "tf-43", question: "يجب تحقيق توافق بين أهداف حقوق الإنسان والأهداف الإنسانية وهو ما يطلق عليه أخلاقية السياسة الخارجية.", answer: true },
-        { id: "tf-44", question: "يجب على الدول أن تعمل على تطبيق سياسة حقوق الإنسان بصفة مؤقتة.", answer: false },
-        { id: "tf-45", question: "تعتمد الدول على أربع أدوات لتطبيق سياسة حقوق الإنسان في السياسات الخارجية.", answer: false },
-        { id: "tf-46", question: "يحق للدول أن تدافع عن حقوق الإنسان.", answer: true },
-        { id: "tf-47", question: "في بداية العدوان الإسرائيلي على غزة التزمت مصر بخطاب حاد.", answer: false },
-        { id: "tf-48", question: "أصبح خطاب مصر أكثر حدة بعد تصاعد العنف الإسرائيلي ضد الفلسطينيين.", answer: true },
-        { id: "tf-49", question: "رفضت مصر أي محاولة لتصفية القضية الفلسطينية.", answer: true },
-        { id: "tf-50", question: "عملت مصر على وصول المساعدات الإنسانية لغزة.", answer: true },
-        { id: "tf-51", question: "تشهد حقوق الإنسان العديد من العقبات.", answer: true },
-        { id: "tf-52", question: "أنشئت اللجنة العليا لحقوق الإنسان من قبل رئيس الوزراء المصري.", answer: true },
-        { id: "tf-53", question: "أنشئت اللجنة العليا لحقوق الإنسان في العام 2010.", answer: false },
-        { id: "tf-54", question: "تم إنشاء اللجنة العليا لحقوق الإنسان لتعزيز حقوق الإنسان في الدولة المصرية.", answer: true },
-        { id: "tf-55", question: "تعد حقوق الإنسان مكوناً مهماً في إستراتيجية التنمية المستدامة وذلك في إطار رؤية مصر 2020.", answer: false },
-        { id: "tf-56", question: "أكدت مشيل باشيليت على أننا نعيش اليوم في زمن تطغى عليه تناقضات شتى.", answer: true },
-        { id: "tf-57", question: "تسعى الأدوات الرقمية والاقتصاد العالمي وحتى الخصائص الديمغرافية إلى تقريب الشعوب من بعضها البعض.", answer: true },
-        { id: "tf-58", question: "أكدت مشيل باشيليت على أهمية دور المحامين في الدفاع عن حقوق الإنسان.", answer: true },
-        { id: "tf-59", question: "أكدت مشيل باشيليت على أهمية سيادة القانون المحلي.", answer: false },
-        { id: "tf-60", question: "تساهم السياسات المعنية بتحقيق العدالة والحماية الاجتماعية في تعزيز الاقتصادات.", answer: true }
-    ];
+ const trueFalseQuestions = [
+  { id: "tf-1", type: "tf", question: "ظهرت فكرة حماية حقوق الإنسان في صور قواعد عرفية.", answer: true },
+  { id: "tf-2", type: "tf", question: "بعد ظهور الدول المنظمة تطورت القواعد العرفية إلى نصوص قانونية.", answer: true },
+  { id: "tf-3", type: "tf", question: "لا تهتم المواطنة بعلاقة الفرد بالدولة التي يعيش عليها.", answer: false },
+  { id: "tf-4", type: "tf", question: "يعد القانون الدولي هو ما يمثل الواقع التطبيقي والتنفيذي لحقوق الإنسان.", answer: false },
+  { id: "tf-5", type: "tf", question: "يعد قانون حقوق الإنسان هو قانوناً دولياً ووطنياً.", answer: true },
+  { id: "tf-6", type: "tf", question: "مما يدل على أثر المرأة في الحياة العلمية في الدولة الأخشيدية، نجد أن الكثير منها دأب على طلب العلم وتعليمه.", answer: false },
+  { id: "tf-7", type: "tf", question: "تمتعت المرأة في العصر العباسي بجميع حقوقها تحديداً في عصر القوة والازدهار.", answer: true },
+  { id: "tf-8", type: "tf", question: "أخذت مشاركة المرأة في الحياة العملية في الدولة العباسية صورة واحدة.", answer: false },
+  { id: "tf-9", type: "tf", question: "تُعد حرفة العطارة من أكثر الحرف التي مارستها المرأة في العصر العباسي.", answer: false },
+  { id: "tf-10", type: "tf", question: "تعتبر التجارة من أقدم المهن والحرف التي اشتغلت بها المرأة العربية.", answer: true },
+  { id: "tf-11", type: "tf", question: "تعد حقوق الإنسان لصيقة بالإنسان مرتبطة به وجوداً وعدماً.", answer: true },
+  { id: "tf-12", type: "tf", question: "تعود جذور الحقوق السياسية إلى القرن الخامس عشر مع الثورة الفرنسية.", answer: false },
+  { id: "tf-13", type: "tf", question: "يطلق على الحقوق السياسية الجيل الثاني.", answer: false },
+  { id: "tf-14", type: "tf", question: "يطلق على الحقوق الاقتصادية والثقافية والاجتماعية الجيل الأول.", answer: false },
+  { id: "tf-15", type: "tf", question: "أكدت الاتفاقيات والمعاهدات الدولية على أهمية توفير الحق في توفير مستوى معيشي مناسب.", answer: true },
+  { id: "tf-16", type: "tf", question: "لكل شخص الحق في حرية الرأي والتعبير.", answer: true },
+  { id: "tf-17", type: "tf", question: "حظر الدستور المصري فرض أي رقابة على الصحف ووسائل الإعلام المصرية أو مصادرتها.", answer: true },
+  { id: "tf-18", type: "tf", question: "لكل إنسان الحق في حرية التفكير والدين والضمير.", answer: true },
+  { id: "tf-19", type: "tf", question: "أكد الدستور المصري على مبدأ المواطنة بين جميع طوائف المجتمع المصري.", answer: true },
+  { id: "tf-20", type: "tf", question: "يعد الأصل في الإنسان الإدانة.", answer: false },
+  { id: "tf-21", type: "tf", question: "تعتبر الجمعية العامة للأمم المتحدة، من الأجهزة الرئيسية في الأمم المتحدة.", answer: true },
+  { id: "tf-22", type: "tf", question: "يعد المجلس الاقتصادي والاجتماعي والثقافي هو أحد مجالس الأمم المتحدة.", answer: true },
+  { id: "tf-23", type: "tf", question: "يهدف المجلس الاقتصادي والاجتماعي والثقافي لتنسيق الأنشطة الاقتصادية والاجتماعية للأمم المتحدة والوكالات المتخصصة.", answer: true },
+  { id: "tf-24", type: "tf", question: "يعتبر المجلس الاقتصادي والاجتماعي هو جهاز رئيس يهدف إلى تنسيق أنشطة الأمم المتحدة في الميدانين الاقتصادي والاجتماعي.", answer: true },
+  { id: "tf-25", type: "tf", question: "اهتم المجلس الاقتصادي والاجتماعي بالتعاون والتنسيق مع المؤسسات والمنظمات غير الحكومية المهتمة بحقوق الإنسان.", answer: true },
+  { id: "tf-26", type: "tf", question: "تعود فكرة إنشاء مفوضية الأمم المتحدة السامية لشؤون اللاجئين إلى العام 1946.", answer: true },
+  { id: "tf-27", type: "tf", question: "يتم اختيار المفوض السامي لشؤون اللاجئين من خلال الجمعية العامة في ضوء ترشيحات الأمين العام.", answer: true },
+  { id: "tf-28", type: "tf", question: "تعتمد الأمم المتحدة في طريق أداء وظائفها على مجموعة من الآليات والأجهزة والمنظمات والهيئات التابعة لها.", answer: true },
+  { id: "tf-29", type: "tf", question: "يتكون مجلس الأمن من سبعة عشر عضواً من الأمم المتحدة.", answer: false },
+  { id: "tf-30", type: "tf", question: "يعتبر مجلس الأمن من الأجهزة الرئيسية في الأمم المتحدة.", answer: true },
+  { id: "tf-31", type: "tf", question: "حقوق الإنسان هي عبارة عن مجموعة من المعايير الأساسية التي لا يمكن للإنسان أن يعيش بكرامة دونها.", answer: true },
+  { id: "tf-32", type: "tf", question: "لا يجوز قيام منظمات أو وكالات إقليمية.", answer: false },
+  { id: "tf-33", type: "tf", question: "المنظمات الإقليمية تُعد شكلاً من أشكال التنظيم الدولي بوجه خاص.", answer: false },
+  { id: "tf-34", type: "tf", question: "مسألة التمويل الأجنبي للمنظمات الإقليمية أو الدولية تثير الكثير من القضايا والتساؤلات.", answer: true },
+  { id: "tf-35", type: "tf", question: "يلعب تاريخ المنظمة دوراً في مسألة الهيكل التنظيمي للمنظمات الإقليمية.", answer: true },
+  { id: "tf-36", type: "tf", question: "الانقسام بين دول الجنوب والشمال شمل أيضاً المنظمات الإقليمية.", answer: true },
+  { id: "tf-37", type: "tf", question: "الاتحاد الأوروبي إحدى المنظمات الإقليمية الدولية لدول الجنوب.", answer: false },
+  { id: "tf-38", type: "tf", question: "منظمة الدول الأمريكية إحدى المنظمات الإقليمية لدول الشمال.", answer: true },
+  { id: "tf-39", type: "tf", question: "أصدر الاتحاد الأوروبي ميثاقه الشهير لحقوق الإنسان في العام 1951.", answer: false },
+  { id: "tf-40", type: "tf", question: "قامت الدول الأوروبية باستحداث المحكمة الأوروبية لحقوق الإنسان.", answer: true },
+  { id: "tf-41", type: "tf", question: "يوجد ترابط بين السياسة الخارجية والسياسة الداخلية لحقوق الإنسان.", answer: true },
+  { id: "tf-42", type: "tf", question: "يجب أن تسعى سياسة حقوق الإنسان إلى التوفيق بين أهداف حقوق الإنسان والديمقراطية.", answer: true },
+  { id: "tf-43", type: "tf", question: "يجب تحقيق توافق بين أهداف حقوق الإنسان والأهداف الإنسانية وهو ما يطلق عليه أخلاقية السياسة الخارجية.", answer: true },
+  { id: "tf-44", type: "tf", question: "يجب على الدول أن تعمل على تطبيق سياسة حقوق الإنسان بصفة مؤقتة.", answer: false },
+  { id: "tf-45", type: "tf", question: "تعتمد الدول على أربع أدوات لتطبيق سياسة حقوق الإنسان في السياسات الخارجية.", answer: false },
+  { id: "tf-46", type: "tf", question: "يحق للدول أن تدافع عن حقوق الإنسان.", answer: true },
+  { id: "tf-47", type: "tf", question: "في بداية العدوان الإسرائيلي على غزة التزمت مصر بخطاب حاد.", answer: false },
+  { id: "tf-48", type: "tf", question: "أصبح خطاب مصر أكثر حدة بعد تصاعد العنف الإسرائيلي ضد الفلسطينيين.", answer: true },
+  { id: "tf-49", type: "tf", question: "رفضت مصر أي محاولة لتصفية القضية الفلسطينية.", answer: true },
+  { id: "tf-50", type: "tf", question: "عملت مصر على وصول المساعدات الإنسانية لغزة.", answer: true },
+  { id: "tf-51", type: "tf", question: "تشهد حقوق الإنسان العديد من العقبات.", answer: true },
+  { id: "tf-52", type: "tf", question: "أنشئت اللجنة العليا لحقوق الإنسان من قبل رئيس الوزراء المصري.", answer: true },
+  { id: "tf-53", type: "tf", question: "أنشئت اللجنة العليا لحقوق الإنسان في العام 2010.", answer: false },
+  { id: "tf-54", type: "tf", question: "تم إنشاء اللجنة العليا لحقوق الإنسان لتعزيز حقوق الإنسان في الدولة المصرية.", answer: true },
+  { id: "tf-55", type: "tf", question: "تعد حقوق الإنسان مكوناً مهماً في إستراتيجية التنمية المستدامة وذلك في إطار رؤية مصر 2020.", answer: false },
+  { id: "tf-56", type: "tf", question: "أكدت مشيل باشيليت على أننا نعيش اليوم في زمن تطغى عليه تناقضات شتى.", answer: true },
+  { id: "tf-57", type: "tf", question: "تسعى الأدوات الرقمية والاقتصاد العالمي وحتى الخصائص الديمغرافية إلى تقريب الشعوب من بعضها البعض.", answer: true },
+  { id: "tf-58", type: "tf", question: "أكدت مشيل باشيليت على أهمية دور المحامين في الدفاع عن حقوق الإنسان.", answer: true },
+  { id: "tf-59", type: "tf", question: "أكدت مشيل باشيليت على أهمية سيادة القانون المحلي.", answer: false },
+  { id: "tf-60", type: "tf", question: "تساهم السياسات المعنية بتحقيق العدالة والحماية الاجتماعية في تعزيز الاقتصادات.", answer: true }
+];
 
     const multipleChoiceQuestions = [
-        { id: "mc-1", question: "تعد عملية ............. عملية اقتصادية واجتماعية وثقافية وسياسية شاملة:", options: ["التقنين", "البحث", "التطور", "التنمية"], answer: "التنمية" },
-        { id: "mc-2", question: "ساوى الإسلام في الحقوق ...... بين المسلمين وغير المسلمين في المجتمع:", options: ["الاجتماعية", "المدنية", "الاقتصادية", "السياسية"], answer: "المدنية" },
-        { id: "mc-3", question: "متى تحدثنا عن الحرية التي أقرها الاسلام، فإننا نتحدث عن حرية ........:", options: ["العمل", "السفر", "العقيدة", "العبادة"], answer: "العقيدة" },
-        { id: "mc-4", question: "تعد الحرية ........ أساساً للاجتهاد وظهور المذاهب الفقهية وتعددها:", options: ["الاجتماعية", "الفكرية", "الاقتصادية", "السياسية"], answer: "الفكرية" },
-        { id: "mc-5", question: "الاسلام ساوى بين الناس في الحقوق والواجبات، وأيضاً ساوى بين المرأة والرجل في الحقوق ............:", options: ["الاجتماعية", "المدنية", "الاقتصادية", "السياسية"], answer: "المدنية" },
-        { id: "mc-6", question: "يعتبر العصر ........ هو عصر القوة والازدهار في جميع المجالات:", options: ["الأيوبي", "المملوكي", "العباسي", "الأموي"], answer: "العباسي" },
-        { id: "mc-7", question: "لقد كتبت المرأة العربية ........ ، مثل ما كتبته الخيزران:", options: ["الرواية", "القصة", "النثر", "الشعر"], answer: "الشعر" },
-        { id: "mc-8", question: "تؤكد النصوص على حرص الحضارة ...... على إعلاء قيم العدل والإخاء بين الناس:", options: ["الهندية", "البابلية", "الصينية", "الفارسية"], answer: "البابلية" },
-        { id: "mc-9", question: "تجسدت عظمة الحضارة المصرية القديمة من خلال قيمة ........:", options: ["المال", "العسكرية", "الأدب", "الأخلاق"], answer: "الأخلاق" },
-        { id: "mc-10", question: "تتميز حضارة العراق القديم بإسهاماتها الكبيرة في مجال حقوق الإنسان، وتحديداً الحضارة ...........:", options: ["الآشورية", "البابلية", "الفارسية", "الهندية"], answer: "البابلية" },
-        { id: "mc-11", question: "تلتزم الدولة بإنشاء نظام ........ خاص بالأطفال المجنى عليهم والشهود:", options: ["قضائي", "اقتصادي", "اجتماعي", "ثقافي"], answer: "قضائي" },
-        { id: "mc-12", question: "متى ثبت للطفل حق ..........، فإنه يترتب على ذلك أن يثبت للطفل الحق في المواطنة:", options: ["التقاضي", "الجنسية", "الزواج", "العمل"], answer: "الجنسية" },
-        { id: "mc-13", question: "يقصد بـ...... 'علاقة بين الفرد والدولة يحددها الدستور وينظمها القانون من خلال واجبات وحقوق':", options: ["التقاضي", "الجنسية", "العمل", "المواطنة"], answer: "المواطنة" },
-        { id: "mc-14", question: "هي عالم أسرار الإنسان التي يجب ألا يطلع عليه غيره ويكره الإنسان أن يتلصص عليه أحد ........:", options: ["التقاضي", "الجنسية", "الخصوصية", "العمل"], answer: "الخصوصية" },
-        { id: "mc-15", question: "يقصد بحرية الانتقال والاقامة هي حرية ........ التي تشمل حرية التنقل من مكان إلى مكان:", options: ["التنقل", "البيع", "الشراء", "الحركة"], answer: "الحركة" },
-        { id: "mc-16", question: "تعد حقوق الإنسان بيان شمولي ........ يحتاج إليه البشر لكي يحيوا حياة إنسانية:", options: ["اقتصادي", "اجتماعي", "قانوني", "إداري"], answer: "قانوني" },
-        { id: "mc-17", question: "إن نهج حقوق الإنسان أنها حقوق ..........:", options: ["اقتصادية", "اجتماعية", "ثقافية", "شمولية"], answer: "شمولية" },
-        { id: "mc-18", question: "نجد أن برنامج عمل ....... الذي اعتمده المؤتمر العالمي لحقوق الإنسان في العام 1993:", options: ["فيينا", "النمسا", "النرويج", "بلجيكا"], answer: "فيينا" },
-        { id: "mc-19", question: "يعاني ...... سكان العالم النامي من الجوع كل ليلة:", options: ["ربع", "خمس", "سدس", "نصف"], answer: "خمس" },
-        { id: "mc-20", question: "يفتقد .................... سكان العالم إلى أبسط الضروريات الأساسية مثل الماء الصالح للشرب:", options: ["ربع", "خمس", "سدس", "نصف"], answer: "ربع" },
-        { id: "mc-21", question: "يققوم بتعيين المفوض السامي للأمم المتحدة لحقوق الإنسان .............:", options: ["الأمين العام", "مجلس الأمن", "مجلس الوصاية", "الجمعية العامة"], answer: "الأمين العام" },
-        { id: "mc-22", question: "يشغل المفوض السامي لحقوق الإنسان منصبه لمدة ......... سنوات:", options: ["ثلاث", "أربع", "خمس", "ست"], answer: "أربع" },
-        { id: "mc-23", question: "يخضع المفوض السامي لسلطة .............:", options: ["الأمين العام", "مجلس الأمن", "مجلس الوصاية", "الجمعية العامة"], answer: "الأمين العام" },
-        { id: "mc-24", question: "يعمل مكتب المفوض السامي على تقديم الخدمات ........:", options: ["القانونية", "العلمية", "التجارية", "الاستشارية"], answer: "الاستشارية" },
-        { id: "mc-25", question: "تهدف وحدة خدمات الدعم والمساندة تقديم الخبرة .........:", options: ["القانونية", "العلمية", "الفنية", "الاستشارية"], answer: "الفنية" },
-        { id: "mc-26", question: "يضع مجلس الأمن خطط لإنشاء نظام لتنظيم ..........:", options: ["العمل", "التسليح", "الهجرة", "السفر"], answer: "التسليح" },
-        { id: "mc-27", question: "يدعو مجلس الأمن جميع الأعضاء إلى تطبيق الجزاءات ..........:", options: ["الاجتماعية", "الثقافية", "الاقتصادية", "التجارية"], answer: "الاقتصادية" },
-        { id: "mc-28", question: "تطبق محكمة العدل الدولية في سبيل الوصول إلى حكم جدير بالثقة والمتانة القواعد ........ من مصادر مختلفة:", options: ["الاجتماعية", "الثقافية", "الاقتصادية", "القانونية"], answer: "القانونية" },
-        { id: "mc-29", question: "يقع مقر محكمة العدل الدولية في مدينة ..................:", options: ["لاهاي", "باريس", "القاهرة", "روما"], answer: "لاهاي" },
-        { id: "mc-30", question: "تتكون محكمة العدل الدولية من .......... قاضيا:", options: ["ثلاث", "أربع", "عشرة", "خمسة عشر"], answer: "خمسة عشر" },
-        { id: "mc-31", question: "صدر الإعلان العالمي لحقوق الإنسان في العام .........:", options: ["1945", "1946", "1947", "1948"], answer: "1948" },
-        { id: "mc-32", question: "عدد المنظمات الإقليمية الدولية التي تعد الأهم على المستوى العالمي........:", options: ["أربع", "ثلاث", "اثنان", "خمس"], answer: "أربع" },
-        { id: "mc-33", question: "تطور مفهوم حقوق الإنسان حتى أصبح يتضمن ......... ولم يعد يقتصر على الأفراد:", options: ["المجتمعات", "الشعوب", "المؤسسات", "المنظمات"], answer: "الشعوب" },
-        { id: "mc-34", question: "من حقوق الشعوب تقرير ........:", options: ["المصير", "الحصار", "التعليم", "الثقافة"], answer: "المصير" },
-        { id: "mc-35", question: "يتم تقرير المصير وفقاً لأحكام القانون ........:", options: ["جنائي", "الاداري", "الدولي", "الخاص"], answer: "الدولي" },
-        { id: "mc-36", question: "عقد مؤتمر فيينا الدولي لحقوق الإنسان في العام ..................:", options: ["1993", "1992", "1991", "1990"], answer: "1993" },
-        { id: "mc-37", question: "تركز دول الشمال على الوجه .......... لحقوق الإنسان:", options: ["جماعي", "الانساني", "الفردي", "السلوكي"], answer: "الفردي" },
-        { id: "mc-38", question: "تركز دول الجنوب على الوجه ....... لحقوق الإنسان:", options: ["الجماعي", "الانساني", "الفردي", "السلوكي"], answer: "الجماعي" },
-        { id: "mc-39", question: "يطالب الشمال بااحترام هذه الحقوق وحمايتها تحت فكرة .......:", options: ["التعاون", "الانسجام", "المغالبة", "المسؤولية"], answer: "المسؤولية" },
-        { id: "mc-40", question: "بات الحديث عن المنظمات الإقليمية الدولية يندرج في إطار .......... الدولية:", options: ["الرباعية", "الخماسية", "الأحادية", "الثنائية"], answer: "الثنائية" },
-        { id: "mc-41", question: "بموجب القانون ....... فإن الدول مسؤولة ولها الحق الشرعي في تدعيم حقوق الإنسان:", options: ["الخاص", "الاداري", "الجنائي", "الدولي"], answer: "الدولي" },
-        { id: "mc-42", question: "تدعم الدول حقوق الإنسان من خلال مجموعة من الأدوات من أجل تطبيق سياساتها ........:", options: ["الداخلية", "الخارجية", "الاقليمية", "الدولية"], answer: "الخارجية" },
-        { id: "mc-43", question: "يعتبر تعزيز حقوق الإنسان مصلحة ..............:", options: ["قومية", "محلية", "خارجية", "دولية"], answer: "قومية" },
-        { id: "mc-44", question: "تعزيز حقوق الإنسان على المستوى المحلي سيدعم حقوق الإنسان في السياسة ........:", options: ["الداخلية", "الخارجية", "الاقليمية", "الدولية"], answer: "الخارجية" },
-        { id: "mc-45", question: "يجب على الدولة أن تقف إلى جانب القيم .........:", options: ["الاشتراكية", "الليبرالية", "الديمقراطية", "الدستورية"], answer: "الديمقراطية" },
-        { id: "mc-46", question: "إن ما يدور في غزة 'خطة ....... لقتل وتهجير الشعب الفلسطيني:", options: ["بديلة", "ممنهجة", "بسيطة", "معقدة"], answer: "ممنهجة" },
-        { id: "mc-47", question: "طالب وزير الخارجية المصرية إقامة الدولة الفلسطينية وعاصمتها ..........:", options: ["غزة", "الضفة", "القدس الشرقية", "جنين"], answer: "القدس الشرقية" },
-        { id: "mc-48", question: "أكدت مصر على ضرورة فتح معبر .......:", options: ["رفح", "جنين", "العوجة", "سالم"], answer: "رفح" },
-        { id: "mc-49", question: "تحدث مصر الحصار ........... على قطاع غزة في فلسطين:", options: ["الامريكي", "الفرنسي", "الانجليزي", "الاسرائيلي"], answer: "الاسرائيلي" },
-        { id: "mc-50", question: "تم استقبال عدد من الجرحى الفلسطينيين في المستشفيات ............:", options: ["الامريكية", "الفرنسية", "الانجليزية", "المصرية"], answer: "المصرية" },
-        { id: "mc-51", question: "تم الاستعانة بـ......... في النيابة العامة ومجلس الدولة:", options: ["المرأة", "الرجل", "الأجانب", "العرب"], answer: "المرأة" },
-        { id: "mc-52", question: "تعمل الدولة على تمكين المرأة ...... في العديد من المجالات:", options: ["اجتماعياً", "اقتصادياً", "ثقافياً", "دبلوماسياً"], answer: "اقتصادياً" },
-        { id: "mc-53", question: "قدمت مبادرة رئيس الجمهورية دعماً لصحة ........:", options: ["المرأة", "الرجل", "الأجانب", "العرب"], answer: "المرأة" },
-        { id: "mc-54", question: "قدمت الدولة دعماً لصحة المرأة و .......:", options: ["الرجل", "الأجانب", "العرب", "الجنين"], answer: "الجنين" },
-        { id: "mc-55", question: "دشنت وزارة الصحة حملة لتطعيم السجناء ضد فيروس.......:", options: ["الكبد", "الكلى", "كورونا", "القلب"], answer: "كورونا" },
-        { id: "mc-56", question: "يؤدي ........ إلى زيادة حركات النزوح:", options: ["تغير المناخ", "الفساد", "القانون", "الضعف"], answer: "تغير المناخ" },
-        { id: "mc-57", question: "يؤدي التغير المناخي إلى نشوب ..........:", options: ["الصراعات", "المجادلات", "النقاشات", "الاعتراضات"], answer: "الصراعات" },
-        { id: "mc-58", question: "النزاعات والصراعات لا تزال تتفاقم، لا سيما مع مشاركة الدول ...... فيها:", options: ["الأجنبية", "العربية", "المحايدة", "المارقة"], answer: "الأجنبية" },
-        { id: "mc-59", question: "يجب بذل جهد كبير لمنع اتساع الحروب من خلال الحد من انتشار ......:", options: ["الأغذية", "الأدوية", "الأسلحة", "المساعدات"], answer: "الأسلحة" },
-        { id: "mc-60", question: "نصت اتفاقية ........ على احترام أسرى الحروب:", options: ["جنيف", "برلين", "باريس", "القاهرة"], answer: "جنيف" }
+      { id: "mc-1", type: "mc", question: "تعد عملية ............. عملية اقتصادية واجتماعية وثقافية وسياسية شاملة:", options: ["التقنين", "البحث", "التطور", "التنمية"], answer: "التنمية" },
+      { id: "mc-2", type: "mc", question: "ساوى الإسلام في الحقوق ...... بين المسلمين وغير المسلمين في المجتمع:", options: ["الاجتماعية", "المدنية", "الاقتصادية", "السياسية"], answer: "المدنية" },
+      { id: "mc-3", type: "mc", question: "متى تحدثنا عن الحرية التي أقرها الاسلام، فإننا نتحدث عن حرية ........:", options: ["العمل", "السفر", "العقيدة", "العبادة"], answer: "العقيدة" },
+      { id: "mc-4", type: "mc", question: "تعد الحرية ........ أساساً للاجتهاد وظهور المذاهب الفقهية وتعددها:", options: ["الاجتماعية", "الفكرية", "الاقتصادية", "السياسية"], answer: "الفكرية" },
+      { id: "mc-5", type: "mc", question: "الاسلام ساوى بين الناس في الحقوق والواجبات، وأيضاً ساوى بين المرأة والرجل في الحقوق ............:", options: ["الاجتماعية", "المدنية", "الاقتصادية", "السياسية"], answer: "المدنية" },
+      { id: "mc-6", type: "mc", question: "يعتبر العصر ........ هو عصر القوة والازدهار في جميع المجالات:", options: ["الأيوبي", "المملوكي", "العباسي", "الأموي"], answer: "العباسي" },
+      { id: "mc-7", type: "mc", question: "لقد كتبت المرأة العربية ........ ، مثل ما كتبته الخيزران:", options: ["الرواية", "القصة", "النثر", "الشعر"], answer: "الشعر" },
+      { id: "mc-8", type: "mc", question: "تؤكد النصوص على حرص الحضارة ...... على إعلاء قيم العدل والإخاء بين الناس:", options: ["الهندية", "البابلية", "الصينية", "الفارسية"], answer: "البابلية" },
+      { id: "mc-9", type: "mc", question: "تجسدت عظمة الحضارة المصرية القديمة من خلال قيمة ........:", options: ["المال", "العسكرية", "الأدب", "الأخلاق"], answer: "الأخلاق" },
+      { id: "mc-10", type: "mc", question: "تتميز حضارة العراق القديم بإسهاماتها الكبيرة في مجال حقوق الإنسان، وتحديداً الحضارة ...........:", options: ["الآشورية", "البابلية", "الفارسية", "الهندية"], answer: "البابلية" },
+      { id: "mc-11", type: "mc", question: "تلتزم الدولة بإنشاء نظام ........ خاص بالأطفال المجنى عليهم والشهود:", options: ["قضائي", "اقتصادي", "اجتماعي", "ثقافي"], answer: "قضائي" },
+      { id: "mc-12", type: "mc", question: "متى ثبت للطفل حق ..........، فإنه يترتب على ذلك أن يثبت للطفل الحق في المواطنة:", options: ["التقاضي", "الجنسية", "الزواج", "العمل"], answer: "الجنسية" },
+      { id: "mc-13", type: "mc", question: "يقصد بـ...... 'علاقة بين الفرد والدولة يحددها الدستور وينظمها القانون من خلال واجبات وحقوق':", options: ["التقاضي", "الجنسية", "العمل", "المواطنة"], answer: "المواطنة" },
+      { id: "mc-14", type: "mc", question: "هي عالم أسرار الإنسان التي يجب ألا يطلع عليه غيره ويكره الإنسان أن يتلصص عليه أحد ........:", options: ["التقاضي", "الجنسية", "الخصوصية", "العمل"], answer: "الخصوصية" },
+      { id: "mc-15", type: "mc", question: "يقصد بحرية الانتقال والاقامة هي حرية ........ التي تشمل حرية التنقل من مكان إلى مكان:", options: ["التنقل", "البيع", "الشراء", "الحركة"], answer: "التنقل" },
+      { id: "mc-16", type: "mc", question: "تعد حقوق الإنسان بيان شمولي ........ يحتاج إليه البشر لكي يحيوا حياة إنسانية:", options: ["اقتصادي", "اجتماعي", "قانوني", "إداري"], answer: "قانوني" },
+      { id: "mc-17", type: "mc", question: "إن نهج حقوق الإنسان أنها حقوق ..........:", options: ["اقتصادية", "اجتماعية", "ثقافية", "شمولية"], answer: "شمولية" },
+      { id: "mc-18", type: "mc", question: "نجد أن برنامج عمل ....... الذي اعتمده المؤتمر العالمي لحقوق الإنسان في العام 1993:", options: ["فيينا", "النمسا", "النرويج", "بلجيكا"], answer: "فيينا" },
+      { id: "mc-19", type: "mc", question: "يعاني ...... سكان العالم النامي من الجوع كل ليلة:", options: ["ربع", "خمس", "سدس", "نصف"], answer: "خمس" },
+      { id: "mc-20", type: "mc", question: "يفتقد .................... سكان العالم إلى أبسط الضروريات الأساسية مثل الماء الصالح للشرب:", options: ["ربع", "خمس", "سدس", "نصف"], answer: "ربع" },
+      { id: "mc-21", type: "mc", question: "يققوم بتعيين المفوض السامي للأمم المتحدة لحقوق الإنسان .............:", options: ["الأمين العام", "مجلس الأمن", "مجلس الوصاية", "الجمعية العامة"], answer: "الأمين العام" },
+      { id: "mc-22", type: "mc", question: "يشغل المفوض السامي لحقوق الإنسان منصبه لمدة ......... سنوات:", options: ["ثلاث", "أربع", "خمس", "ست"], answer: "أربع" },
+      { id: "mc-23", type: "mc", question: "يخضع المفوض السامي لسلطة .............:", options: ["الأمين العام", "مجلس الأمن", "مجلس الوصاية", "الجمعية العامة"], answer: "الأمين العام" },
+      { id: "mc-24", type: "mc", question: "يعمل مكتب المفوض السامي على تقديم الخدمات ........:", options: ["القانونية", "العلمية", "التجارية", "الاستشارية"], answer: "الاستشارية" },
+      { id: "mc-25", type: "mc", question: "تهدف وحدة خدمات الدعم والمساندة تقديم الخبرة .........:", options: ["القانونية", "العلمية", "الفنية", "الاستشارية"], answer: "الفنية" },
+      { id: "mc-26", type: "mc", question: "يضع مجلس الأمن خطط لإنشاء نظام لتنظيم ..........:", options: ["العمل", "التسليح", "الهجرة", "السفر"], answer: "التسليح" },
+      { id: "mc-27", type: "mc", question: "يدعو مجلس الأمن جميع الأعضاء إلى تطبيق الجزاءات ..........:", options: ["الاجتماعية", "الثقافية", "الاقتصادية", "التجارية"], answer: "الاقتصادية" },
+      { id: "mc-28", type: "mc", question: "تطبق محكمة العدل الدولية في سبيل الوصول إلى حكم جدير بالثقة والمتانة القواعد ........ من مصادر مختلفة:", options: ["الاجتماعية", "الثقافية", "الاقتصادية", "القانونية"], answer: "القانونية" },
+      { id: "mc-29", type: "mc", question: "يقع مقر محكمة العدل الدولية في مدينة ..................:", options: ["لاهاي", "باريس", "القاهرة", "روما"], answer: "لاهاي" },
+      { id: "mc-30", type: "mc", question: "تتكون محكمة العدل الدولية من .......... قاضيا:", options: ["ثلاث", "أربع", "عشرة", "خمسة عشر"], answer: "خمسة عشر" },
+      { id: "mc-31", type: "mc", question: "صدر الإعلان العالمي لحقوق الإنسان في العام .........:", options: ["1945", "1946", "1947", "1948"], answer: "1948" },
+      { id: "mc-32", type: "mc", question: "عدد المنظمات الإقليمية الدولية التي تعد الأهم على المستوى العالمي........:", options: ["أربع", "ثلاث", "اثنان", "خمس"], answer: "ثلاث" },
+      { id: "mc-33", type: "mc", question: "تطور مفهوم حقوق الإنسان حتى أصبح يتضمن ......... ولم يعد يقتصر على الأفراد:", options: ["المجتمعات", "الشعوب", "المؤسسات", "المنظمات"], answer: "الشعوب" },
+      { id: "mc-34", type: "mc", question: "من حقوق الشعوب تقرير ........:", options: ["المصير", "الحصار", "التعليم", "الثقافة"], answer: "المصير" },
+      { id: "mc-35", type: "mc", question: "يتم تقرير المصير وفقاً لأحكام القانون ........:", options: ["جنائي", "الاداري", "الدولي", "الخاص"], answer: "الدولي" },
+      { id: "mc-36", type: "mc", question: "عقد مؤتمر فيينا الدولي لحقوق الإنسان في العام ..................:", options: ["1993", "1992", "1991", "1990"], answer: "1993" },
+      { id: "mc-37", type: "mc", question: "تركز دول الشمال على الوجه .......... لحقوق الإنسان:", options: ["جماعي", "الانساني", "الفردي", "السلوكي"], answer: "الفردي" },
+      { id: "mc-38", type: "mc", question: "تركز دول الجنوب على الوجه ....... لحقوق الإنسان:", options: ["الجماعي", "الانساني", "الفردي", "السلوكي"], answer: "الجماعي" },
+      { id: "mc-39", type: "mc", question: "يطالب الشمال بااحترام هذه الحقوق وحمايتها تحت فكرة .......:", options: ["التعاون", "الانسجام", "المغالبة", "المسؤولية"], answer: "المسؤولية" },
+      { id: "mc-40", type: "mc", question: "بات الحديث عن المنظمات الإقليمية الدولية يندرج في إطار .......... الدولية:", options: ["الرباعية", "الخماسية", "الأحادية", "الثنائية"], answer: "الثنائية" },
+      { id: "mc-41", type: "mc", question: "بموجب القانون ....... فإن الدول مسؤولة ولها الحق الشرعي في تدعيم حقوق الإنسان:", options: ["الخاص", "الاداري", "الجنائي", "الدولي"], answer: "الدولي" },
+      { id: "mc-42", type: "mc", question: "تدعم الدول حقوق الإنسان من خلال مجموعة من الأدوات من أجل تطبيق سياساتها ........:", options: ["الداخلية", "الخارجية", "الاقليمية", "الدولية"], answer: "الخارجية" },
+      { id: "mc-43", type: "mc", question: "يعتبر تعزيز حقوق الإنسان مصلحة ..............:", options: ["قومية", "محلية", "خارجية", "دولية"], answer: "قومية" },
+      { id: "mc-44", type: "mc", question: "تعزيز حقوق الإنسان على المستوى المحلي سيدعم حقوق الإنسان في السياسة ........:", options: ["الداخلية", "الخارجية", "الاقليمية", "الدولية"], answer: "الخارجية" },
+      { id: "mc-45", type: "mc", question: "يجب على الدولة أن تقف إلى جانب القيم .........:", options: ["الاشتراكية", "الليبرالية", "الديمقراطية", "الدستورية"], answer: "الديمقراطية" },
+      { id: "mc-46", type: "mc", question: "إن ما يدور في غزة 'خطة ....... لقتل وتهجير الشعب الفلسطيني:", options: ["بديلة", "ممنهجة", "بسيطة", "معقدة"], answer: "ممنهجة" },
+      { id: "mc-47", type: "mc", question: "طالب وزير الخارجية المصرية إقامة الدولة الفلسطينية وعاصمتها ..........:", options: ["غزة", "الضفة", "القدس الشرقية", "جنين"], answer: "القدس الشرقية" },
+      { id: "mc-48", type: "mc", question: "أكدت مصر على ضرورة فتح معبر .......:", options: ["رفح", "جنين", "العوجة", "سالم"], answer: "رفح" },
+      { id: "mc-49", type: "mc", question: "تحدث مصر الحصار ........... على قطاع غزة في فلسطين:", options: ["الامريكي", "الفرنسي", "الانجليزي", "الاسرائيلي"], answer: "الاسرائيلي" },
+      { id: "mc-50", type: "mc", question: "تم استقبال عدد من الجرحى الفلسطينيين في المستشفيات ............:", options: ["الامريكية", "الفرنسية", "الانجليزية", "المصرية"], answer: "المصرية" },
+      { id: "mc-51", type: "mc", question: "تم الاستعانة بـ......... في النيابة العامة ومجلس الدولة:", options: ["المرأة", "الرجل", "الأجانب", "العرب"], answer: "المرأة" },
+      { id: "mc-52", type: "mc", question: "تعمل الدولة على تمكين المرأة ...... في العديد من المجالات:", options: ["اجتماعياً", "اقتصادياً", "ثقافياً", "دبلوماسياً"], answer: "اقتصادياً" },
+      { id: "mc-53", type: "mc", question: "قدمت مبادرة رئيس الجمهورية دعماً لصحة ........:", options: ["المرأة", "الرجل", "الأجانب", "العرب"], answer: "المرأة" },
+      { id: "mc-54", type: "mc", question: "قدمت الدولة دعماً لصحة المرأة و .......:", options: ["الرجل", "الأجانب", "العرب", "الجنين"], answer: "الجنين" },
+      { id: "mc-55", type: "mc", question: "دشنت وزارة الصحة حملة لتطعيم السجناء ضد فيروس.......:", options: ["الكبد", "الكلى", "كورونا", "القلب"], answer: "كورونا" },
+      { id: "mc-56", type: "mc", question: "يؤدي ........ إلى زيادة حركات النزوح:", options: ["تغير المناخ", "الفساد", "القانون", "الضعف"], answer: "تغير المناخ" },
+      { id: "mc-57", type: "mc", question: "يؤدي التغير المناخي إلى نشوب ..........:", options: ["الصراعات", "المجادلات", "النقاشات", "الاعتراضات"], answer: "الصراعات" },
+      { id: "mc-58", type: "mc", question: "النزاعات والصراعات لا تزال تتفاقم، لا سيما مع مشاركة الدول ...... فيها:", options: ["الأجنبية", "العربية", "المحايدة", "المارقة"], answer: "الأجنبية" },
+      { id: "mc-59", type: "mc", question: "يجب بذل جهد كبير لمنع اتساع الحروب من خلال الحد من انتشار ......:", options: ["الأغذية", "الأدوية", "الأسلحة", "المساعدات"], answer: "الأسلحة" },
+      { id: "mc-60", type: "mc", question: "نصت اتفاقية ........ على احترام أسرى الحروب:", options: ["جنيف", "برلين", "باريس", "القاهرة"], answer: "جنيف" }
     ];
 
+    // دالة الخلط العشوائي
     function shuffleArray(array) {
         let arr = [...array];
         for (let i = arr.length - 1; i > 0; i--) {
@@ -175,26 +465,42 @@
         const tfContainer = document.getElementById('tf-section-container');
         const mcContainer = document.getElementById('mc-section-container');
 
-        let tfHtml = '<h3>أسئلة الصح والخطأ:</h3>';
-        shuffleArray(trueFalseQuestions).forEach((q, index) => {
+        // خلط كل مصفوفة على حدة بشكل مستقل ومفاجئ!
+        const shuffledTF = shuffleArray(trueFalseQuestions);
+        const shuffledMC = shuffleArray(multipleChoiceQuestions);
+
+        // 1. بناء قسم الصح والخطأ
+        let tfHtml = '';
+        shuffledTF.forEach((q, index) => {
             tfHtml += `
                 <div class="question-card" id="card-${q.id}">
                     <div class="question-text">${index + 1}. ${q.question}</div>
-                    <button class="option-btn" onclick="checkTrueFalse('${q.id}', true, this)">صح</button>
-                    <button class="option-btn" onclick="checkTrueFalse('${q.id}', false, this)">خطأ</button>
-                    <div class="correction-box" id="correction-${q.id}"><strong>الإجابة الصحيحة:</strong> ${q.answer ? 'صح' : 'خطأ'}</div>
+                    <div class="options-container tf-container">
+                        <button class="option-btn" onclick="checkTrueFalse('${q.id}', true, this)">صح</button>
+                        <button class="option-btn" onclick="checkTrueFalse('${q.id}', false, this)">خطأ</button>
+                    </div>
+                    <div class="correction-box" id="correction-${q.id}"><strong>التصحيح والتعليل الفوري:</strong> ${q.correction}</div>
                 </div>
             `;
         });
         tfContainer.innerHTML = tfHtml;
 
-        let mcHtml = '<h3>أسئلة الاختيار من متعدد:</h3>';
-        shuffleArray(multipleChoiceQuestions).forEach((q, index) => {
-            mcHtml += `<div class="question-card" id="card-${q.id}"><div class="question-text">${index + 1}. ${q.question}</div>`;
+        // 2. بناء قسم الاختيار من متعدد
+        let mcHtml = '';
+        shuffledMC.forEach((q, index) => {
+            mcHtml += `
+                <div class="question-card" id="card-${q.id}">
+                    <div class="question-text">${index + 1}. ${q.question}</div>
+                    <div class="options-container">
+            `;
             q.options.forEach(opt => {
                 mcHtml += `<button class="option-btn" onclick="checkMultipleChoice('${q.id}', '${opt}', this)">${opt}</button>`;
             });
-            mcHtml += `<div class="correction-box" id="correction-${q.id}"><strong>الإجابة الصحيحة هي:</strong> [ ${q.answer} ]</div></div>`;
+            mcHtml += `
+                    </div>
+                    <div class="correction-box" id="correction-${q.id}"><strong>الإجابة الصحيحة هي:</strong> [ ${q.answer} ]</div>
+                </div>
+            `;
         });
         mcContainer.innerHTML = mcHtml;
     }
@@ -203,12 +509,24 @@
         const question = trueFalseQuestions.find(q => q.id === id);
         const parent = btn.parentElement;
         const buttons = parent.querySelectorAll('.option-btn');
+        const infoBox = document.getElementById(`correction-${id}`);
+        
         buttons.forEach(b => b.classList.add('disabled'));
         
-        if (userAns === question.answer) { btn.classList.add('correct'); totalCorrect++; }
-        else { btn.classList.add('wrong'); totalWrong++; }
+        if (userAns === question.answer) {
+            btn.classList.add('correct');
+            totalCorrect++;
+        } else {
+            btn.classList.add('wrong');
+            buttons.forEach(b => {
+                if ((b.innerText === 'صح' && question.answer === true) || (b.innerText === 'خطأ' && question.answer === false)) {
+                    b.classList.add('correct');
+                }
+            });
+            totalWrong++;
+        }
         
-        document.getElementById(`correction-${id}`).classList.add('show-info');
+        if (infoBox) infoBox.classList.add('show-info');
         updateScoreBoard();
     }
 
@@ -216,16 +534,29 @@
         const question = multipleChoiceQuestions.find(q => q.id === id);
         const parent = btn.parentElement;
         const buttons = parent.querySelectorAll('.option-btn');
+        const infoBox = document.getElementById(`correction-${id}`);
+        
         buttons.forEach(b => b.classList.add('disabled'));
         
-        if (userAns === question.answer) { btn.classList.add('correct'); totalCorrect++; }
-        else { btn.classList.add('wrong'); totalWrong++; }
+        if (userAns === question.answer) {
+            btn.classList.add('correct');
+            totalCorrect++;
+        } else {
+            btn.classList.add('wrong');
+            buttons.forEach(b => {
+                if (b.innerText === question.answer) {
+                    b.classList.add('correct');
+                }
+            });
+            totalWrong++;
+        }
         
-        document.getElementById(`correction-${id}`).classList.add('show-info');
+        if (infoBox) infoBox.classList.add('show-info');
         updateScoreBoard();
     }
 
-    renderQuizSections();
+    // تشغيل الخلط وفصل الأقسام فور تحميل الصفحة
+    window.onload = renderQuizSections;
 </script>
 </body>
 </html>
